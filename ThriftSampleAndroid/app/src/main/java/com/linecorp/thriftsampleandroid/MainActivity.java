@@ -10,6 +10,7 @@ import org.apache.thrift.TException;
 import org.apache.thrift.async.TAsyncClient;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransportException;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -19,17 +20,27 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        TSocket transport = new TSocket("localhost", 9090);
-        TBinaryProtocol protocol = new TBinaryProtocol(transport);
 //        EchoSrv.AsyncClient client = new EchoSrv.AsyncClient()
-        EchoSrv.Client client = new EchoSrv.Client(protocol);
 
-        try {
-            Log.d("WITZ", client.echo("hello"));
-            Log.d("WITZ", client.echo2times("hello"));
-        } catch (TException e) {
-            e.printStackTrace();
-        }
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                TSocket transport = new TSocket("10.0.2.2", 9090); // 10.0.2.2 is the ip which emulator to localhost by
+                TBinaryProtocol protocol = new TBinaryProtocol(transport);
+                EchoSrv.Client client = new EchoSrv.Client(protocol);
+                try {
+                    transport.open();
+                    Log.d("WITZ", client.echo("hello"));
+                    Log.d("WITZ", client.echo2times("hello"));
+                } catch (TTransportException e) {
+                    e.printStackTrace();
+                } catch (TException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        thread.start();
+
     }
 
     @Override
